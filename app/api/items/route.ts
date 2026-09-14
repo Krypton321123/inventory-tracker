@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Item from "@/models/Item";
+import { getCurrentUser, hasPermission } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    return NextResponse.json({ success: false, error: "Not authenticated" }, { status: 401 });
+  }
+
   try {
     await connectDB();
     const { searchParams } = new URL(req.url);
@@ -22,6 +28,16 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    return NextResponse.json({ success: false, error: "Not authenticated" }, { status: 401 });
+  }
+  // canManageItems, not canManageStock — creating a new item is a catalog change,
+  // distinct from adjusting the stock count of an item that already exists.
+  if (!hasPermission(currentUser, "canManageItems")) {
+    return NextResponse.json({ success: false, error: "You don't have permission to add items" }, { status: 403 });
+  }
+
   try {
     await connectDB();
     const body = await req.json();

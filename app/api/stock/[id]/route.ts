@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Item from "@/models/Item";
+import { getCurrentUser, hasPermission } from "@/lib/auth";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    return NextResponse.json({ success: false, error: "Not authenticated" }, { status: 401 });
+  }
+  // The check you specifically asked for: only the superuser (or a staff member
+  // explicitly granted canManageStock) can add or deduct stock here.
+  if (!hasPermission(currentUser, "canManageStock")) {
+    return NextResponse.json({ success: false, error: "You don't have permission to adjust stock" }, { status: 403 });
+  }
+
   try {
     await connectDB();
     const { id } = await params;

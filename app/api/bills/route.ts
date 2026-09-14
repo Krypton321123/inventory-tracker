@@ -3,8 +3,14 @@ import { connectDB } from "@/lib/mongodb";
 import Bill from "@/models/Bill";
 import Item from "@/models/Item";
 import mongoose from "mongoose";
+import { getCurrentUser, hasPermission } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    return NextResponse.json({ success: false, error: "Not authenticated" }, { status: 401 });
+  }
+
   try {
     await connectDB();
     const { searchParams } = new URL(req.url);
@@ -20,6 +26,23 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    return NextResponse.json({ success: false, error: "Not authenticated" }, { status: 401 });
+  }
+  if (!hasPermission(currentUser, "canManageBills")) {
+    return NextResponse.json({ success: false, error: "You don't have permission to create bills" }, { status: 403 });
+  }
+  // This handler deducts stock on every line item (see the loop below) — the exact
+  // same mutation /api/stock/[id] gates behind canManageStock. Without this second
+  // check, a user with canManageBills but not canManageStock could move stock by
+  // creating bills instead of using the stock endpoint directly, which defeats the
+  // "only superuser can add/deduct stock" rule you asked for. Requiring both here
+  // closes that path.
+  if (!hasPermission(currentUser, "canManageStock")) {
+    return NextResponse.json({ success: false, error: "You don't have permission to adjust stock, which bill creation requires" }, { status: 403 });
+  }
+
   const session = await mongoose.startSession();
   session.startTransaction();
   try {

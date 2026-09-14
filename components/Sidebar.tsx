@@ -1,9 +1,15 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const navItems = [
+interface CurrentUser {
+  name: string;
+  email: string;
+  role: "superuser" | "staff";
+}
+
+const baseNavItems = [
   {
     href: "/dashboard",
     label: "Dashboard",
@@ -42,16 +48,35 @@ const navItems = [
   },
 ];
 
+const usersNavItem = {
+  href: "/users",
+  label: "Users",
+  icon: (
+    <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1a4 4 0 100-8 4 4 0 000 8zm6 3a4 4 0 00-3-3.87" />
+    </svg>
+  ),
+};
+
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [user, setUser] = useState<CurrentUser | null>(null);
 
-  // Close the drawer on route change so navigating never leaves it open.
+  // Login page renders without a sidebar/session — skip the /me call there so an
+  // unauthenticated visit to /login doesn't trigger a pointless 401 in the console.
+  useEffect(() => {
+    if (pathname === "/login") return;
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setUser(d.data); });
+  }, [pathname]);
+
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
 
-  // Prevent the page behind the drawer from scrolling while it's open.
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => {
@@ -59,14 +84,23 @@ export default function Sidebar() {
     };
   }, [open]);
 
+  if (pathname === "/login") return null;
+
+  const navItems = user?.role === "superuser" ? [...baseNavItems, usersNavItem] : baseNavItems;
+
   const currentLabel =
     navItems.find(
       (item) => pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))
     )?.label ?? "StockFlow";
 
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
+  };
+
   return (
     <>
-      {/* Mobile top bar: hamburger trigger + current section label. Hidden at md+ where the fixed sidebar takes over. */}
       <header
         className="md:hidden fixed top-0 left-0 right-0 h-14 flex items-center gap-3 px-4 z-30"
         style={{ background: "#fff", borderBottom: "1px solid var(--border)" }}
@@ -92,7 +126,6 @@ export default function Sidebar() {
         </div>
       </header>
 
-      {/* Backdrop, mobile only, shown while the drawer is open */}
       {open && (
         <div
           className="md:hidden fixed inset-0 z-40"
@@ -102,13 +135,11 @@ export default function Sidebar() {
         />
       )}
 
-      {/* Sidebar: fixed in place at md+, slide-in drawer below md */}
       <aside
         className={`fixed top-0 left-0 h-screen w-60 flex flex-col z-50 transition-transform duration-200 ease-out
           ${open ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
         style={{ background: "#fff", borderRight: "1px solid var(--border)" }}
       >
-        {/* Logo */}
         <div className="px-5 py-5 flex items-center justify-between" style={{ borderBottom: "1px solid var(--border)" }}>
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "var(--accent)" }}>
@@ -133,7 +164,6 @@ export default function Sidebar() {
           </button>
         </div>
 
-        {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-0.5">
           <p className="text-xs font-semibold px-2 mb-2" style={{ color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em" }}>Menu</p>
           {navItems.map((item) => {
@@ -157,8 +187,28 @@ export default function Sidebar() {
           })}
         </nav>
 
-        {/* Footer */}
-        <div className="px-5 py-4" style={{ borderTop: "1px solid var(--border)" }}>
+        {/* Footer: connection status + current user + logout */}
+        <div className="px-5 py-4 space-y-3" style={{ borderTop: "1px solid var(--border)" }}>
+          {user && (
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>{user.name}</p>
+                <p className="text-[11px] truncate" style={{ color: "var(--text-muted)" }}>
+                  {user.role === "superuser" ? "Superuser" : "Staff"}
+                </p>
+              </div>
+              <button
+                onClick={handleLogout}
+                aria-label="Log out"
+                className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors"
+                style={{ color: "var(--text-muted)" }}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </button>
+            </div>
+          )}
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full" style={{ background: "var(--accent)" }}></div>
             <span className="text-xs" style={{ color: "var(--text-muted)" }}>Connected to MongoDB</span>

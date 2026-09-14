@@ -405,24 +405,24 @@ export default function BillingPage() {
   };
 
   return (
-    <div className="p-8" style={{ background: "var(--background)", minHeight: "100vh" }}>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Create Bill</h1>
+    <div className="p-4 sm:p-6 lg:p-8" style={{ background: "var(--background)", minHeight: "100vh" }}>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Create Bill</h1>
         <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>Select items and generate an invoice</p>
       </div>
 
-      <div className="grid grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Left panel */}
-        <div className="col-span-3 space-y-4">
+        <div className="lg:col-span-3 space-y-4">
           {/* Customer info */}
           <div className="rounded-2xl p-5 border" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
             <h2 className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Customer Details</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { label: "Name *", key: "name", placeholder: "Customer name", span: false },
                 { label: "Phone", key: "phone", placeholder: "+91 00000 00000", span: false },
               ].map(({ label, key, placeholder, span }) => (
-                <div key={key} className={span ? "col-span-2" : ""}>
+                <div key={key} className={span ? "sm:col-span-2" : ""}>
                   <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--text-muted)" }}>{label}</label>
                   <input
                     value={customer[key as keyof typeof customer]}
@@ -439,7 +439,7 @@ export default function BillingPage() {
                   />
                 </div>
               ))}
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--text-muted)" }}>Address</label>
                 <input
                   value={customer.address}
@@ -531,7 +531,7 @@ export default function BillingPage() {
                     </button>
                   ))}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     value={newChargeLabel}
                     onChange={(e) => setNewChargeLabel(e.target.value)}
@@ -539,24 +539,26 @@ export default function BillingPage() {
                     className="flex-1 text-sm rounded-lg px-3 py-2 outline-none"
                     style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
                   />
-                  <input
-                    type="number"
-                    value={newChargeAmount}
-                    onChange={(e) => setNewChargeAmount(e.target.value)}
-                    placeholder="₹ Amount"
-                    className="w-28 text-sm rounded-lg px-3 py-2 outline-none text-right"
-                    style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
-                    min="0"
-                  />
-                  <button
-                    onClick={addExtraCharge}
-                    className="px-3 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
-                    style={{ background: "var(--accent)" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-hover)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
-                  >
-                    Add
-                  </button>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      value={newChargeAmount}
+                      onChange={(e) => setNewChargeAmount(e.target.value)}
+                      placeholder="₹ Amount"
+                      className="flex-1 sm:w-28 sm:flex-none text-sm rounded-lg px-3 py-2 outline-none text-right"
+                      style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
+                      min="0"
+                    />
+                    <button
+                      onClick={addExtraCharge}
+                      className="px-3 py-2 rounded-lg text-sm font-semibold text-white transition-colors flex-shrink-0"
+                      style={{ background: "var(--accent)" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-hover)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
+                    >
+                      Add
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -590,8 +592,8 @@ export default function BillingPage() {
         </div>
 
         {/* Right panel — Bill Summary */}
-        <div className="col-span-2">
-          <div className="rounded-2xl p-5 sticky top-8 border" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+        <div className="lg:col-span-2">
+          <div className="rounded-2xl p-5 lg:sticky lg:top-8 border" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
             <h2 className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Bill Summary</h2>
 
             {cart.length === 0 ? (

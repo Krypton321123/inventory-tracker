@@ -86,13 +86,13 @@ export default function ItemsPage() {
   const stockColor = (s: number) => s <= 5 ? "#dc2626" : s <= 20 ? "#d97706" : "#0d7a5f";
 
   return (
-    <div className="p-8 max-w-6xl">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-6xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-2xl font-semibold" style={{ color: "var(--text-primary)", letterSpacing: "-0.02em" }}>Inventory</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold" style={{ color: "var(--text-primary)", letterSpacing: "-0.02em" }}>Inventory</h1>
           <p className="text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>{items.length} items</p>
         </div>
-        <button onClick={openAdd} className="flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-xl transition-colors text-white"
+        <button onClick={openAdd} className="flex items-center justify-center gap-2 text-sm font-medium px-4 py-2.5 rounded-xl transition-colors text-white w-full sm:w-auto"
           style={{ background: "var(--accent)" }}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
           Add Item
@@ -106,8 +106,9 @@ export default function ItemsPage() {
           style={{ background: "#fff", border: "1px solid var(--border)", color: "var(--text-primary)" }} />
       </div>
 
-      <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid var(--border)" }}>
-        <table className="w-full">
+      {/* Desktop / tablet: table. Hidden below sm, where the card list underneath takes over. */}
+      <div className="hidden sm:block rounded-2xl overflow-hidden overflow-x-auto" style={{ background: "#fff", border: "1px solid var(--border)" }}>
+        <table className="w-full min-w-[640px]">
           <thead>
             <tr style={{ borderBottom: "1px solid var(--border)", background: "var(--surface-2)" }}>
               {["Item", "SKU", "Category", "Price", "Stock", "Actions"].map((h, i) => (
@@ -160,14 +161,53 @@ export default function ItemsPage() {
         </table>
       </div>
 
+      {/* Mobile: stacked cards, one per item. Shown only below sm. */}
+      <div className="sm:hidden space-y-3">
+        {loading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-32 rounded-2xl animate-pulse" style={{ background: "var(--surface-2)" }} />
+          ))
+        ) : items.length === 0 ? (
+          <div className="text-center py-16 text-sm rounded-2xl" style={{ color: "var(--text-muted)", background: "#fff", border: "1px solid var(--border)" }}>
+            No items found
+          </div>
+        ) : items.map((item) => (
+          <div key={item._id} className="rounded-2xl p-4" style={{ background: "#fff", border: "1px solid var(--border)" }}>
+            <div className="flex items-start justify-between gap-3 mb-2.5">
+              <div className="min-w-0">
+                <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{item.name}</p>
+                <p className="text-xs font-mono mt-0.5" style={{ color: "var(--text-secondary)" }}>{item.sku}</p>
+              </div>
+              <span className="text-sm font-semibold flex-shrink-0" style={{ color: stockColor(item.stock) }}>
+                {item.stock} <span className="text-xs font-normal" style={{ color: "var(--text-muted)" }}>{item.unit}</span>
+              </span>
+            </div>
+            {item.description && <p className="text-xs mb-2.5" style={{ color: "var(--text-muted)" }}>{item.description}</p>}
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs px-2.5 py-1 rounded-lg font-medium" style={{ background: "var(--surface-2)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}>{item.category}</span>
+              <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{fmt(item.price)}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={() => { setShowStockModal(item); setStockOp("add"); setStockQty(""); setError(""); }}
+                className="flex-1 text-xs px-2.5 py-2 rounded-lg font-medium transition-colors"
+                style={{ background: "var(--accent-light)", color: "var(--accent)", border: "1px solid #0d7a5f30" }}>+ Stock</button>
+              <button onClick={() => openEdit(item)} className="flex-1 text-xs px-2.5 py-2 rounded-lg transition-colors"
+                style={{ background: "var(--surface-2)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}>Edit</button>
+              <button onClick={() => handleDelete(item._id)} className="flex-1 text-xs px-2.5 py-2 rounded-lg transition-colors"
+                style={{ background: "var(--danger-light)", color: "var(--danger)", border: "1px solid #dc262620" }}>Delete</button>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* Add/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ background: "rgba(0,0,0,0.3)", backdropFilter: "blur(4px)" }}>
-          <div className="w-full max-w-lg rounded-2xl p-6 shadow-2xl" style={{ background: "#fff", border: "1px solid var(--border)" }}>
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-start sm:items-center justify-center p-0 sm:p-4" style={{ background: "rgba(0,0,0,0.3)", backdropFilter: "blur(4px)" }}>
+          <div className="w-full sm:max-w-lg min-h-screen sm:min-h-0 rounded-none sm:rounded-2xl p-5 sm:p-6 shadow-2xl" style={{ background: "#fff", border: "1px solid var(--border)" }}>
             <h2 className="text-lg font-semibold mb-5" style={{ color: "var(--text-primary)" }}>{editItem ? "Edit Item" : "Add New Item"}</h2>
             {error && <div className="text-sm mb-4 px-3 py-2 rounded-lg" style={{ background: "var(--danger-light)", color: "var(--danger)", border: "1px solid #dc262620" }}>{error}</div>}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="sm:col-span-2">
                 <Input label="Item Name *">
                   <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className={inputCls} style={inputStyle} placeholder="e.g. Wireless Mouse" />
                 </Input>
@@ -191,7 +231,7 @@ export default function ItemsPage() {
                   </select>
                 </div>
               </Input>
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <Input label="Description">
                   <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={2} className={`${inputCls} resize-none`} style={inputStyle} placeholder="Optional description…" />
                 </Input>
@@ -209,8 +249,8 @@ export default function ItemsPage() {
 
       {/* Stock Modal */}
       {showStockModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ background: "rgba(0,0,0,0.3)", backdropFilter: "blur(4px)" }}>
-          <div className="w-full max-w-sm rounded-2xl p-6 shadow-2xl" style={{ background: "#fff", border: "1px solid var(--border)" }}>
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.3)", backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-sm rounded-2xl p-5 sm:p-6 shadow-2xl" style={{ background: "#fff", border: "1px solid var(--border)" }}>
             <h2 className="text-lg font-semibold mb-1" style={{ color: "var(--text-primary)" }}>Update Stock</h2>
             <p className="text-sm mb-5" style={{ color: "var(--text-secondary)" }}>
               {showStockModal.name} — Current: <strong style={{ color: "var(--text-primary)" }}>{showStockModal.stock} {showStockModal.unit}</strong>

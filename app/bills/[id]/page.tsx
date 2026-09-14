@@ -224,16 +224,16 @@ export default function BillDetailPage() {
 
   if (loading) {
     return (
-      <div className="p-8 flex items-center justify-center min-h-64">
+      <div className="p-4 sm:p-6 lg:p-8 flex items-center justify-center min-h-64">
         <div className="w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
-  if (!bill) return <div className="p-8 text-[var(--text-secondary)]">Bill not found</div>;
+  if (!bill) return <div className="p-4 sm:p-6 lg:p-8 text-[var(--text-secondary)]">Bill not found</div>;
 
   return (
-    <div className="p-8 max-w-4xl">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl">
       {/* Back */}
       <button
         onClick={() => router.back()}
@@ -246,10 +246,10 @@ export default function BillDetailPage() {
       </button>
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
         <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-bold text-[var(--text-primary)] font-mono">{bill.billNumber}</h1>
+          <div className="flex flex-wrap items-center gap-3 mb-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)] font-mono">{bill.billNumber}</h1>
             <span className={`text-xs px-2.5 py-1 rounded-lg font-medium capitalize ${statusStyles[bill.status]}`}>
               {bill.status}
             </span>
@@ -263,14 +263,14 @@ export default function BillDetailPage() {
             })}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {bill.status === "unpaid" && (
             <button
               onClick={() => updateStatus("paid")}
               disabled={updating}
-              className="flex items-center gap-2 bg-[var(--accent-light)] hover:bg-[var(--accent)]/20 text-[var(--accent)] text-sm font-medium px-3 py-2 rounded-xl transition-colors border border-[var(--accent)]/20"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[var(--accent-light)] hover:bg-[var(--accent)]/20 text-[var(--accent)] text-sm font-medium px-3 py-2 rounded-xl transition-colors border border-[var(--accent)]/20"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               Mark Paid
@@ -280,7 +280,7 @@ export default function BillDetailPage() {
             <button
               onClick={() => updateStatus("cancelled")}
               disabled={updating}
-              className="flex items-center gap-2 bg-[var(--danger-light)] hover:bg-[var(--danger)]/15 text-[var(--danger)] text-sm font-medium px-3 py-2 rounded-xl transition-colors border border-[var(--danger)]/20"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[var(--danger-light)] hover:bg-[var(--danger)]/15 text-[var(--danger)] text-sm font-medium px-3 py-2 rounded-xl transition-colors border border-[var(--danger)]/20"
             >
               Cancel
             </button>
@@ -288,9 +288,9 @@ export default function BillDetailPage() {
           <button
             onClick={downloadPDF}
             disabled={pdfLoading}
-            className="flex items-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             {pdfLoading ? "Generating..." : "Download PDF"}
@@ -298,9 +298,9 @@ export default function BillDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6">
         {/* Customer */}
-        <div className="col-span-2 bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5">
+        <div className="sm:col-span-2 bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5">
           <p className="text-xs text-[var(--text-muted)] uppercase tracking-wide font-semibold mb-3">Customer</p>
           <p className="text-[var(--text-primary)] text-lg font-semibold">{bill.customerName}</p>
           {bill.customerPhone && (
@@ -334,9 +334,9 @@ export default function BillDetailPage() {
         </div>
       </div>
 
-      {/* Items table */}
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl overflow-hidden mb-6">
-        <table className="w-full">
+      {/* Items: table on desktop/tablet, stacked cards on mobile */}
+      <div className="hidden sm:block bg-[var(--surface)] border border-[var(--border)] rounded-2xl overflow-hidden overflow-x-auto mb-6">
+        <table className="w-full min-w-[520px]">
           <thead>
             <tr className="border-b border-[var(--border)]">
               <th className="text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide px-5 py-3.5">Item</th>
@@ -358,6 +358,23 @@ export default function BillDetailPage() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="sm:hidden space-y-2.5 mb-6">
+        {bill.items.map((item, i) => (
+          <div key={i} className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4">
+            <div className="flex items-start justify-between gap-3 mb-1.5">
+              <div className="min-w-0">
+                <p className="text-[var(--text-primary)] text-sm font-medium truncate">{item.name}</p>
+                <p className="text-[var(--text-secondary)] text-xs font-mono mt-0.5">{item.sku}</p>
+              </div>
+              <p className="text-[var(--text-primary)] text-sm font-semibold flex-shrink-0">{fmt(item.subtotal)}</p>
+            </div>
+            <p className="text-[var(--text-muted)] text-xs">
+              {item.quantity} {item.unit} × {fmt(item.price)}
+            </p>
+          </div>
+        ))}
       </div>
 
       {bill.notes && (
